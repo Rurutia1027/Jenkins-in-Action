@@ -55,3 +55,5 @@ Through this project, we can
 The goal of this project is to understand how Jenkins acts as the automation engine in a DevOps workflow, connecting source control, testing frameworks, and deployment processes into a repeatable delivery pipeline. 
 
 
+## Reference 
+[CI/CD for Test Automation: Jenkins & GitHub Actions](https://www.udemy.com/course/cicd-testers/?srsltid=AfmBOorDLG7eXXGI3Xol8nHK1RI2QjaG3mSYFoRClV86aFNuqKe902K_&couponCode=CP260817G1)
