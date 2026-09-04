@@ -19,6 +19,13 @@ pipeline {
                     sh 'go test -v ./...'
                 }
             }
+
+             post {
+                always {
+                    sh 'go test -v ./... 2>&1 | go-junit-report -set-exit-code > test-results.xml'
+                    junit 'bugtracker-backend/test-results.xml'
+                }
+            }
         }
         stage('Unit Tests -- Frontend') {
             agent {
@@ -27,10 +34,12 @@ pipeline {
                     reuseNode true
                 }
             }
+
             environment {
                 HOME    = "${WORKSPACE}"
                 NODE_ENV = 'test'
             }
+
             steps {
                 dir('bugtracker-frontend') {
                     sh '''
@@ -47,4 +56,4 @@ pipeline {
             }
         }
     }
-}
+} 
