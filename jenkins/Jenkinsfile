@@ -11,7 +11,7 @@ pipeline {
             }
             steps {
                 dir('bugtracker-backend') {
-                    sh 'sudo go test -v ./...'
+                    sh 'go test -v ./...'
                 }
             }
         }
