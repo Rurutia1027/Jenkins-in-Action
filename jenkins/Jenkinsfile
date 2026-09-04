@@ -20,5 +20,15 @@ pipeline {
                 }
             }
         }
+        stage('Unit Tests -- Frontend') {
+            agent {}
+
+            steps {
+                dir('bugtracker-frontend') {
+                    sh 'npm run ci'
+                    sh 'npm run test'
+                }
+            }
+        }
     }
 }
