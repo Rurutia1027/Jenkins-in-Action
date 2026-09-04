@@ -21,8 +21,16 @@ pipeline {
             }
         }
         stage('Unit Tests -- Frontend') {
-            // agent {}
-
+            agent {
+                docker {
+                    image 'node:20-alpine'
+                    reuseNode true
+                }
+            }
+            environment {
+                HOME    = "${WORKSPACE}"
+                NODE_ENV = 'test'
+            }
             steps {
                 dir('bugtracker-frontend') {
                     sh 'npm run ci'
