@@ -21,7 +21,7 @@ pipeline {
             }
         }
         stage('Unit Tests -- Frontend') {
-            agent {}
+            // agent {}
 
             steps {
                 dir('bugtracker-frontend') {
