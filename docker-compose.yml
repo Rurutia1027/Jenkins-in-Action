@@ -1,0 +1,45 @@
+networks:
+  bugtracker:
+    driver: bridge
+
+services:
+  frontend:
+    build:
+      context: ./bugtracker-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - bugtracker
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    build:
+      context: ./bugtracker-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_PATH=/app/data/bugs.db
+      - SEED_DATA=true
+    volumes:
+      - ./data:/app/data
+    networks:
+      - bugtracker
+    healthcheck:
+      test: ["CMD", "wget", "-O", "-", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

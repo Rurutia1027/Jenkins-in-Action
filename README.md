@@ -1,140 +1,155 @@
-# Jenkins in Action 
+# Bug Tracker Pro
 
-A hands-on project demonstrating how to build a CI/CD pipeline with Jenkins and integrate automated testing into the software delivery workflow. 
+<p align="center">
+  <img src="bugtracker-frontend/public/bugTracker_Logo.png" alt="Bug Tracker Logo" width="300" height="300"/>
+</p>
 
-This project shows how Jenkins can automate the complete lifecycle from code changes to testing and deployment. 
+A full-stack bug tracking application built with Go (backend) and Next.js (frontend). The application allows users to create, read, update, and delete bug reports, with support for comments and priority levels.
 
-## Overview 
-Modern DevOps practices require fast feedback and reliable delivery. In this project, Jenkins is used to orchestrate: 
-- Application build
-- Automated testing
-- Test report generation
-- Deployment automation
-- Environment management
+## Features
 
-Pipeline flow: 
+- Create and manage bug reports
+- Add comments to bugs
+- Set priority levels and status
+- Real-time updates
+- Responsive design
+- Comprehensive test coverage (unit, API, E2E, and performance tests)
 
-Code Commit --> Jenkins Pipeline 
--> Build Application 
--> Run Tests 
--> Generate Reports 
--> Deploy Application 
+## Prerequisites
 
+Before running the application, ensure you have the following installed:
 
-## Tech Stack 
-- Jenkins
-- Jenkinsfile
-- Docker
-- Playwright
-- K6
-- Fly.io
-- Git
+- [Node.js](https://nodejs.org/) (v20 or later)
+- [Go](https://go.dev/) (v1.21 or later)
+- [Docker and Docker Compose](https://docs.docker.com/)
+- [Git](https://git-scm.com/)
 
-## CI/CD Pipeline 
-Implemented Jenkins pipeline stages: 
+## Quick Start with Docker Compose
 
-### 1. Build 
-- Checkout source code
-- Build application
-- Prepare deployment artifacts
+The easiest way to run the application is using Docker Compose:
 
-### 2. Automated Testing 
-Integrated multiple testing layers:
-- Backend Unit Tests
-- Frontend Unit Tests
-- API Tests
-- End-to-End Tests
-- Performance Tests
+```bash
+# Clone the repository
+git clone https://github.com/james-willett/bug-tracker.git
+cd bug-tracker
 
-### 3. Test Reports 
-Jenkins publishes: 
-- Test execution results
-- Code coverage reports
-- Performance test reports 
+# Launch the application
+docker compose up --build
+```
 
-### 4. Deployment 
-Automated deployment workflow: 
-- Staging deployment
-- Post-deployment verification
-- Production deployment
+The application will be available at:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
 
+## Manual Setup
 
+### Backend
 
-## Key Jenkins Concepts 
-Through this project, we can 
-- Configure Jenkins jobs
-- Create Jenkins pipelines using Jenkinsfile
-- Manage environment variables and secrets
-- Integrate automated tests into CI/CD
-- Automate application deployment
+```bash
+cd bugtracker-backend
 
-## Project Goal 
-The goal of this project is to understand how Jenkins acts as the automation engine in a DevOps workflow, connecting source control, testing frameworks, and deployment processes into a repeatable delivery pipeline. 
+# Install dependencies
+go mod download
 
+# Run the application
+go run cmd/bugtracker/main.go
+```
 
-## Jenkins in Real-World Scenarios 
+The backend API will be available at http://localhost:8080
 
-After completing this course, we will continue exploring how Jenkins is applied in real enterprise engineering environments. 
-Based on real-world Jenkins usage patterns, we will dive deeper into several practical scenarios: 
+### Frontend
 
-### 1. Daily Development Workflow 
+```bash
+cd bugtracker-frontend
 
-How Jenkins help developers validate code changes before merging into the main branch. 
+# Install dependencies
+npm install
 
-Topics include: 
-- GitHub code submission workflow
-- Branch-based Jenkins pipeline execution
-- Shared smoke test suites
-- Flexible test case selection
-- Generating and reviewing test reports
-- Debugging failed test cases with build context
-- Re-running selected test cases after failure
-- Multi-environment isolation
-- Jenkins views, configuration, and Jenkinsfile design
+# Run the development server
+npm run dev
+```
 
-### 2. Release Workflow 
+The frontend will be available at http://localhost:3000
 
-How Jenkins supports the complete release process from branch preparation to production deployment. 
+## Running Tests
 
-Topics include: 
-- Release branch validation
-- Manual pipeline triggering
-- Preparing staging and production-like environments
-- Complex environment configuration
-- Version tagging
-- Full regression testing before release
-- Build artifact generation
-- Docker image packaging and deployment workflow 
+The project includes several types of tests:
 
-### 3. Scheduled Regression Workflow 
+### Backend Unit Tests
+```bash
+cd bugtracker-backend
+go test ./... -v
+```
 
-How Jenkins supports the complete release process from branch preparation to production deployment. 
-- Sprint-level integration validation
-- Branch merge verification
-- CI hook triggering Jenkins pipelines
-- Isolated test environment creation
-- Automated test reports
-- Small-scale integration testing after merge
-- Nightly full regression testing
+### Frontend Unit Tests
+```bash
+cd bugtracker-frontend
+npm test
+```
 
-The regression pipeline may include: 
-- BDD testing across frontend and backend
-- Frontend automation testing
-  > Screenshot testing
-  > Visual regression testing
-- Backend API testing
-- Cross-service integration validation
-- Performance testing with tools such as K6 or JMeter
+### API Tests
+```bash
+cd tests-api
+npm install
+npm run test:local
+```
 
-Through these scenarios, we will understand how Jenkins acts as an automation engine that connects 
-- source control
-- testing
-- framework
-- artifact management
-- and workflows
+### E2E Tests
+```bash
+cd tests-e2e
+npm install
+npx playwright test
+```
 
-in modern DevOps practices. 
+### Performance Tests
+First, install K6:
+```bash
+# MacOS
+brew install k6
 
+# Windows
+winget install k6
 
-## Reference 
-[Udemy: CI/CD for Test Automation: Jenkins & GitHub Actions](https://www.udemy.com/course/cicd-testers/?srsltid=AfmBOorDLG7eXXGI3Xol8nHK1RI2QjaG3mSYFoRClV86aFNuqKe902K_&couponCode=CP260817G1)
+# Linux
+For Linux installation instructions, please refer to the [official K6 installation guide](https://k6.io/docs/getting-started/installation#linux)
+```
+
+Then run the tests:
+```bash
+cd tests-perf
+k6 run script.js
+```
+
+## Project Structure
+
+- `bugtracker-backend/` - Go backend application
+- `bugtracker-frontend/` - Next.js frontend application
+- `tests-api/` - API tests using Playwright
+- `tests-e2e/` - End-to-end tests using Playwright
+- `tests-perf/` - Performance tests using K6
+- `jenkins/` - Contains Jenkins pipeline configurations
+
+## Jenkins CI/CD
+
+The project includes Jenkins pipelines located in the `jenkins/` folder for continuous integration and deployment.
+
+To start Jenkins locally using Docker Compose:
+
+```bash
+cd jenkins
+docker-compose up --build
+```
+
+Jenkins will then be available at [http://localhost:9000](http://localhost:9000).
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details 

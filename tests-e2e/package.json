@@ -1,0 +1,14 @@
+{
+  "name": "bugtracker-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "directories": {
+    "test": "."
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^22.10.10",
+    "typescript": "^5.7.3",
+    "wait-port": "^1.1.0"
+  }
+}

@@ -1,0 +1,73 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.groovylintrc.json
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+
+# Logs and process files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+backend.pid
+frontend.pid
+
+# Dependencies
+node_modules/
+
+# Next.js / frontend build
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Go backend
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bugtracker-backend/bugtracker
+*.test
+*.out
+coverage*
+bugtracker-backend/coverage*
+bugtracker-backend/report.xml
+
+# Runtime database (SQLite bind-mounted at ./data)
+data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Test reports
+test-results/
+playwright-report/
+playwright/.cache/
+**/last-run.json
+**/test-results.xml
+**/test-results.json
+tests-perf/test-results/
+tests-perf/perf-results.html
+bugtracker-frontend/full_output.txt
+
+# Local Jenkins / Docker leftovers (named volumes stay in Docker; bind mounts should not be committed)
+jenkins/jenkins_home/
+jenkins/certs/
+jenkins-data/
+jenkins-docker-certs/
