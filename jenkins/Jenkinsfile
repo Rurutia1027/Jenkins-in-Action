@@ -33,8 +33,16 @@ pipeline {
             }
             steps {
                 dir('bugtracker-frontend') {
-                    sh 'npm ci'
-                    sh 'npm test'
+                    sh '''
+                    npm ci
+                    npm test
+                    '''
+                }
+            }
+
+            post {
+                always {
+                    junit 'backtracker-frontend/test-results.xml'
                 }
             }
         }
