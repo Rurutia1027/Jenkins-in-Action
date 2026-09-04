@@ -16,13 +16,12 @@ pipeline {
             }
             steps {
                 dir('bugtracker-backend') {
-                    sh 'go test -v ./...'
+                    sh 'go test -v ./... 2>&1 | go-junit-report -set-exit-code > test-results.xml'
                 }
             }
 
              post {
                 always {
-                    sh 'go test -v ./... 2>&1 | go-junit-report -set-exit-code > test-results.xml'
                     junit 'bugtracker-backend/test-results.xml'
                 }
             }
