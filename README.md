@@ -1,4 +1,4 @@
-# Bug Tracker Pro
+# Bug Tracker Pro | [![First Workflow](https://github.com/Rurutia1027/Jenkins-in-Action/actions/workflows/blank.yml/badge.svg)](https://github.com/Rurutia1027/Jenkins-in-Action/actions/workflows/blank.yml)
 
 <p align="center">
   <img src="bugtracker-frontend/public/bugTracker_Logo.png" alt="Bug Tracker Logo" width="300" height="300"/>
