@@ -1,7 +1,8 @@
 # Bug Tracker Pro | [![First Workflow](https://github.com/Rurutia1027/Jenkins-in-Action/actions/workflows/blank.yml/badge.svg)](https://github.com/Rurutia1027/Jenkins-in-Action/actions/workflows/blank.yml)
 
+## Final Project Architecture 
 <p align="center">
-  <img src="bugtracker-frontend/public/bugTracker_Logo.png" alt="Bug Tracker Logo" width="300" height="300"/>
+  <img width="866" height="801" alt="Screenshot 2026-09-05 at 17 53 47" src="https://github.com/user-attachments/assets/18821b53-ec19-47f8-afed-187a38b46991" />
 </p>
 
 A full-stack bug tracking application built with Go (backend) and Next.js (frontend). The application allows users to create, read, update, and delete bug reports, with support for comments and priority levels.
