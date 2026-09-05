@@ -6,7 +6,7 @@ The project focuses on **test orchestration, quality gates, scalable CI executio
 
 ## Architecture
 
-![CI/CD Architecture](docs/architecture.png)
+<img width="866" height="801" alt="Screenshot 2026-09-05 at 17 53 47" src="https://github.com/user-attachments/assets/d3fccdba-dee1-4d55-b3a2-c9ddf9c7a6ae" />
 
 
 ## Techstack 
