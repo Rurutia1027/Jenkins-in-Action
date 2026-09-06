@@ -9,8 +9,10 @@ pipeline {
                         docker {
                             image 'snakee/golang-junit:1.21'
                             reuseNode true
+                            args '--network host --dns 127.0.0.11'
                         }
                     }
+                    options { skipDefaultCheckout() }
                     environment {
                         HOME    = "${WORKSPACE}"
                         GOCACHE = "${WORKSPACE}/.gocache"
@@ -47,8 +49,10 @@ pipeline {
                         docker {
                             image 'node:20-alpine'
                             reuseNode true
+                            args '--network host --dns 127.0.0.11'
                         }
                     }
+                    options { skipDefaultCheckout() }
                     environment {
                         HOME     = "${WORKSPACE}"
                         NODE_ENV = 'test'
@@ -81,11 +85,12 @@ pipeline {
         stage('Launch Application') {
             agent {
                 docker {
-                    image '27.5.1'
-                    reuseNode true 
-                    args '-v /var/run/docker.sock:/var/run/docker.sock -u 0' 
+                    image 'docker:27.5.1-cli'
+                    reuseNode true
+                    args '--network host --dns 127.0.0.11 -v /var/run/docker.sock:/var/run/docker.sock -u 0'
                 }
             }
+            options { skipDefaultCheckout() }
 
             steps {
                 sh 'docker compose up --build -d'
