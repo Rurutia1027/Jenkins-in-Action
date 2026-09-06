@@ -93,7 +93,20 @@ pipeline {
             options { skipDefaultCheckout() }
 
             steps {
-                sh 'docker compose up --build --pull never -d'
+                sh '''
+                # Stop leftover stacks from previous job/workspace names
+                # so 8080/3000 are free before this run binds them.
+                for port in 8080 3000; do
+                  ids=$(docker ps -q --filter "publish=${port}")
+                  if [ -n "$ids" ]; then
+                    docker stop $ids
+                    docker rm $ids
+                  fi
+                done
+
+                # One stable project name so reruns replace the same containers
+                docker compose -p bugtracker up --build --pull never -d
+                '''
             }
         }
 
