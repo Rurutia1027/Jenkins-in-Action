@@ -100,11 +100,13 @@ pipeline {
         stage('Test Application') {
             agent {
                 docker {
-                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy' 
-                    reuseNode true 
+                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    reuseNode true
+                    alwaysPull false
                     args '--network host --dns 127.0.0.11 -u 0'
                 }
             }
+            options { skipDefaultCheckout() }
 
             steps {
                 dir('tests-api') {
