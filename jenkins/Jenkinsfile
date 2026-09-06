@@ -93,7 +93,7 @@ pipeline {
             options { skipDefaultCheckout() }
 
             steps {
-                sh 'docker compose up --build -d'
+                sh 'docker compose up --build --pull never -d'
             }
         }
     }
