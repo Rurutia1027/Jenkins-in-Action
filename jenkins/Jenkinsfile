@@ -126,12 +126,13 @@ pipeline {
                     sh 'npx wait-port http://localhost:8080/api/health -t 30000'
                     sh 'npm ci'
                     sh 'npx playwright test'
+                    sh 'pwd'
                 }
             }
 
             post {
                 always {
-                    // junit 'tests-api/tests-results/results.xml'
+                    junit 'tests-api/test-results/results.xml'
                     publishHTML target: [
                         reportDir: 'tests-api/playwright-report',
                         reportFiles: 'index.html',
