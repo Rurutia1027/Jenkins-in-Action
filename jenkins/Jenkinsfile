@@ -96,6 +96,24 @@ pipeline {
                 sh 'docker compose up --build --pull never -d'
             }
         }
+
+        stage('Test Application') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy' 
+                    reuseNode true 
+                    args '--network host --dns 127.0.0.11 -u 0'
+                }
+            }
+
+            steps {
+                dir('tests-api') {
+                    sh 'npx wait-port http://localhost:8080/api/health -t 30000'
+                    sh 'npm ci'
+                    sh 'npx playwright test'
+                }
+            }
+        }
     }
 
     post {
