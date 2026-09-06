@@ -49,6 +49,8 @@ Tests are organized around test scenarios, rather than treating every test type 
 
 Test Type --> Test Suite --> Test Scenario --> Pipeline Policy --> Quality Gate 
 
+Frontend layering, journey catalog, and scenario assignment are in [FRONTEND-TEST-DESIGN.md](./FRONTEND-TEST-DESIGN.md). 
+
 
 ## Test Types 
 - Static Analysis 
@@ -158,6 +160,54 @@ The platform is designed for:
 - Jenkins health monitoring 
 - Persistent configuration and backup 
 
+## Local Jenkins on kind
+
+Introduction and design notes: [docs/jenkins-on-kind.md](docs/jenkins-on-kind.md).
+
+The Compose + DinD stack under `jenkins/` stays the local fallback. The kind path deploys a production-shaped Jenkins with Helm: persistent controller, JCasC, and ephemeral Kubernetes agents.
+
+Prerequisites: Docker, [kind](https://kind.sigs.k8s.io/), kubectl, and Helm 3.
+
+```bash
+# From the repository root
+cd jenkins-k8s-solution
+
+./scripts/kind-up.sh
+./scripts/deploy-jenkins.sh
+```
+
+`deploy-jenkins.sh` builds `docker.io/jenkins-kind/controller:1.0.0` (plugins baked in), loads it into kind, then runs `helm upgrade --install`.
+
+- UI: [http://localhost:9000](http://localhost:9000)
+- User: `admin`
+- Password: printed by the deploy script, or:
+
+```bash
+kubectl --context kind-jenkins -n jenkins get secret jenkins \
+  -o jsonpath='{.data.jenkins-admin-password}' | base64 --decode
+```
+
+Create a Pipeline job from `jenkins/pipelines/agent-smoke.Jenkinsfile` (`agent { label 'jenkins-agent' }`). A pod should appear in the `jenkins` namespace and be deleted when the build finishes.
+
+```bash
+# Remove the Helm release; keep the cluster
+./scripts/teardown.sh
+
+# Remove the Helm release and the kind cluster
+./scripts/teardown.sh --cluster
+```
+
+If port 9000 is already used by the Compose Jenkins, stop that stack first, or create the cluster on another host port:
+
+```bash
+KIND_HOST_PORT=9001 ./scripts/kind-up.sh
+KIND_HOST_PORT=9001 ./scripts/deploy-jenkins.sh
+```
+
+Troubleshooting:
+
+- kind shares the Docker Desktop disk. If the controller init container dies with `echo: I/O error`, free space (`docker builder prune` is usually enough) and delete `jenkins-0` so it retries.
+- `deploy-jenkins.sh` flattens images to the kind node platform (linux/arm64 or linux/amd64) before `kind load`, so Docker Desktop multi-arch manifests do not break the import.
 
 ## Observability 
 **The platform monitors both CI infrastructure and application runtime.**
