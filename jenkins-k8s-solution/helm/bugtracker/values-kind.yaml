@@ -1,0 +1,15 @@
+# kind laptop: NodePorts + local registry + host ports from kind/cluster.yaml
+
+fullnameOverride: bugtracker
+
+backend:
+  service:
+    type: NodePort
+    nodePort: 30081
+  publicHostPort: 18080
+
+frontend:
+  service:
+    type: NodePort
+    nodePort: 30030
+  publicApiUrl: http://127.0.0.1:18080
