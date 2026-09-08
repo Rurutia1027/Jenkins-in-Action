@@ -32,4 +32,9 @@ func SetupTestDB(t *testing.T) func() {
 		Cleanup()
 		os.Remove(tmpFile)
 	}
+}
+
+// SetDatabasePath points Init() at a file. Used by integration tests that reopen bbolt.
+func SetDatabasePath(path string) {
+	databasePath = path
 } 
