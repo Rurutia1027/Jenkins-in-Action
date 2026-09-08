@@ -1,0 +1,27 @@
+# pr — no images
+tests:
+  unit: true
+  component: true
+  api: false
+  integration: true
+  bdd: false
+  e2e: false
+  visual: false
+  security: true
+  performance: false
+  image: false
+  deploy: false
+
+# master — compile + push only
+# master:
+#   image: true
+#   deploy: false
+
+# nightly — no rebuild
+# nightly:
+#   image: false
+
+# release — pull tag only
+# release:
+#   image: false
+#   deploy: canary-then-stable

@@ -1,0 +1,57 @@
+# Shared by PR / Master / Nightly / Release. The kubernetes plugin adds the JNLP container.
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: golang
+      image: golang:1.21-alpine
+      command: ["sleep", "86400"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+    - name: node
+      image: node:20-alpine
+      command: ["sleep", "86400"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+    - name: kaniko
+      image: gcr.io/kaniko-project/executor:v1.23.2-debug
+      command: ["sleep", "86400"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 2Gi
+    - name: helm
+      image: dtzar/helm-kubectl:3.17.2
+      command: ["sleep", "86400"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+    - name: playwright
+      image: mcr.microsoft.com/playwright:v1.50.0-jammy
+      command: ["sleep", "86400"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 2Gi
+    - name: trivy
+      image: aquasec/trivy:0.58.1
+      command: ["sleep", "86400"]
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 1Gi
