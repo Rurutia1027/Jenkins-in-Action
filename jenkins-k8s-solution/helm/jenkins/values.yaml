@@ -1,0 +1,93 @@
+# Production-shaped defaults. kind overrides live in values-kind.yaml.
+# All keys sit under `jenkins` because this chart wraps jenkins/jenkins.
+
+jenkins:
+  fullnameOverride: jenkins
+
+  controller:
+    componentName: jenkins-controller
+    image:
+      registry: docker.io
+      repository: jenkins-kind/controller
+      tag: "1.0.0"
+      pullPolicy: IfNotPresent
+
+    # Plugins are baked into the controller image.
+    installPlugins: false
+    overwritePluginsFromImage: false
+    initializeOnce: true
+
+    numExecutors: 0
+    jenkinsUrlProtocol: http
+
+    admin:
+      username: admin
+      createSecret: true
+
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+
+    # Production default: stay in-cluster. kind maps a NodePort instead.
+    serviceType: ClusterIP
+    servicePort: 8080
+    targetPort: 8080
+
+    agentListenerEnabled: true
+    agentListenerPort: 50000
+    agentListenerServiceType: ClusterIP
+
+    healthProbes: true
+
+    JCasC:
+      defaultConfig: true
+      overwriteConfiguration: false
+      configScripts:
+        welcome-message: |
+          jenkins:
+            systemMessage: "Bug Tracker CI platform — configured as code. Agents are ephemeral Kubernetes pods."
+
+    sidecars:
+      configAutoReload:
+        enabled: true
+
+  agent:
+    enabled: true
+    disableDefaultAgent: false
+    customJenkinsLabels:
+      - jenkins-agent
+    alwaysPullImage: false
+    podRetention: Never
+    containerCap: 10
+    idleMinutes: 0
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    image:
+      registry: docker.io
+      repository: jenkins/inbound-agent
+      tag: "3385.vf1123fb_515da_-1"
+
+  persistence:
+    enabled: true
+    accessMode: ReadWriteOnce
+    size: 8Gi
+
+  rbac:
+    create: true
+    readSecrets: false
+
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: true
+
+  serviceAccountAgent:
+    create: true

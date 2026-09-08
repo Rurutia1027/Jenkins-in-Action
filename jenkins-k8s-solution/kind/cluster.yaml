@@ -1,0 +1,11 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: jenkins
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # Host :9000 -> NodePort 30080 (Jenkins UI)
+      - containerPort: 30080
+        hostPort: 9000
+        listenAddress: "127.0.0.1"
+        protocol: TCP

@@ -1,0 +1,32 @@
+# kind / laptop overrides. Applied after values.yaml.
+
+jenkins:
+  controller:
+    image:
+      pullPolicy: IfNotPresent
+    jenkinsUrl: http://localhost:9000
+    serviceType: NodePort
+    nodePort: 30080
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "1"
+        memory: 2Gi
+    # Avoid pulling kiwigrid/k8s-sidecar on a flaky Docker Hub path.
+    # JCasC still applies on controller start.
+    sidecars:
+      configAutoReload:
+        enabled: false
+
+  agent:
+    namespace: jenkins
+    alwaysPullImage: false
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
