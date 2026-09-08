@@ -163,7 +163,7 @@ export default function BugList() {
           </button>
         </div>
 
-        <div className="bg-white shadow-md rounded-lg">
+        <div className="bg-white shadow-md rounded-lg" data-testid="bug-list">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
@@ -187,7 +187,10 @@ export default function BugList() {
             <tbody className="bg-white divide-y divide-gray-200">
               {(bugs || []).map((bug) => (
                 <tr key={bug.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td
+                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                    data-testid="bug-id"
+                  >
                     <Link
                       href={`/bugs/${bug.id}`}
                       className="text-blue-600 hover:text-blue-900"
