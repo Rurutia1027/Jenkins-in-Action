@@ -1,0 +1,16 @@
+# https://trivy.dev/latest/docs/configuration/config-file/
+severity:
+  - HIGH
+  - CRITICAL
+vulnerability:
+  ignore-unfixed: true
+scan:
+  skip-dirs:
+    - node_modules
+    - .git
+    - .next
+    - tests-visual
+    - tests-e2e
+    - tests-bdd
+    - tests-api
+    - tests-perf

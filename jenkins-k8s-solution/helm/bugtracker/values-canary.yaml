@@ -1,0 +1,17 @@
+# Isolated candidate. Same images (tag set on the helm command). Stable release stays untouched.
+
+fullnameOverride: bugtracker-canary
+
+backend:
+  persistence:
+    enabled: true
+    size: 1Gi
+  service:
+    type: NodePort
+    nodePort: 30082
+
+frontend:
+  service:
+    type: NodePort
+    nodePort: 30031
+  publicApiUrl: http://127.0.0.1:18081

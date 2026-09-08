@@ -74,3 +74,6 @@ jenkins-docker-certs/
 
 # Helm dependency packages (resolved by scripts/deploy-jenkins.sh)
 jenkins-k8s-solution/helm/jenkins/charts/
+
+# Security scan reports
+tests-security/reports/

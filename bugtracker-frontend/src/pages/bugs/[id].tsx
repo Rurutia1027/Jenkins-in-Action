@@ -8,7 +8,7 @@ import EditBugModal from "@/components/EditBugModal";
 import { updateBug } from "@/api/bugs";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import { deleteBug } from "@/api/bugs";
-import { API_BASE_URL } from "@/config";
+import { getApiBaseUrl } from "@/config";
 
 export default function BugDetail() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function BugDetail() {
 
   const fetchComments = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/bugs/${id}/comments`);
+      const response = await fetch(`${getApiBaseUrl()}/api/bugs/${id}/comments`);
       if (!response.ok) {
         throw new Error("Failed to fetch comments");
       }
@@ -38,7 +38,7 @@ export default function BugDetail() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/bugs/${id}`);
+        const response = await fetch(`${getApiBaseUrl()}/api/bugs/${id}`);
         if (!response.ok) {
           throw new Error("Bug not found");
         }
@@ -59,7 +59,7 @@ export default function BugDetail() {
   const handleEditBug = async (bugId: number, updatedBug: Partial<Bug>) => {
     try {
       await updateBug(bugId.toString(), updatedBug);
-      const response = await fetch(`${API_BASE_URL}/api/bugs/${id}`);
+      const response = await fetch(`${getApiBaseUrl()}/api/bugs/${id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch updated bug");
       }
@@ -102,7 +102,7 @@ export default function BugDetail() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="bg-white shadow-md rounded-lg p-6" data-testid="bug-detail">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">{bug.title}</h1>
             <div className="flex gap-4">
@@ -124,7 +124,9 @@ export default function BugDetail() {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
               <p className="text-gray-600">ID</p>
-              <p className="font-medium">{bug.id}</p>
+              <p className="font-medium" data-testid="bug-id-value">
+                {bug.id}
+              </p>
             </div>
             <div>
               <p className="text-gray-600">Status</p>

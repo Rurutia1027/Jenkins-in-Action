@@ -1,325 +1,179 @@
-# Fullstack CI/CD & Test Automation Platform - V1
+# Fullstack Test Automation Platform
 
-A production-oriented CI/CD and automated testing platform built around a [fullstack applicaiton](https://github.com/james-willett/bug-tracker), demonstrating how business-driven test strategies can be integrated into Jenkins, GitHub Enterprise, Docker, and Kubernetes workflows. 
+An SDET platform around [Bug Tracker](https://github.com/james-willett/bug-tracker): Go API + Next.js. Jenkins, kind, and Helm are the execution layer. They do not define the testing architecture.
 
-The project focuses on **test orchestration, quality gates, scalable CI execution, Kubernetes deployment, and observability** rather than simply running a collection of automated tests. 
+The contract is: **the cheapest test at the earliest lifecycle stage that can reliably detect that failure.**
+
+Primary design: [docs/testing-architecture.md](docs/testing-architecture.md).
 
 ## Architecture
 
-<img width="866" height="801" alt="Screenshot 2026-09-05 at 17 53 47" src="https://github.com/user-attachments/assets/d3fccdba-dee1-4d55-b3a2-c9ddf9c7a6ae" />
-
-
-## Techstack 
-### Application 
-- React/TypeScript
-- etcd
-- Golang 
-
-
-### CI/CD 
-- Jenkins 
-- Jenkins Multibranch Pipeline 
-- Jenkins Shared Library 
-- GitHub Action 
-- Docker 
-- Container Registry 
-- Kubernetes 
-- Helm 
-
-### Automated Testing 
-- Golang Unit
-- Playwright 
-- Cucumber / BDD 
-- Serenity 
-- Visual Regression Testing 
-- JaCoCo 
-- SnonarQube 
-- OWASP Dependency-Check 
-- k6
-
-### Observability 
-- Prometheus 
-- Grafana 
-- Loki 
-- OpenTelemetry 
-- Jaeger / Tempo 
-
-## Test Strategy 
-Tests are organized around test scenarios, rather than treating every test type as an independent pipeline. 
-
-Test Type --> Test Suite --> Test Scenario --> Pipeline Policy --> Quality Gate 
-
-Frontend layering, journey catalog, and scenario assignment are in [FRONTEND-TEST-DESIGN.md](./FRONTEND-TEST-DESIGN.md). 
-
-
-## Test Types 
-- Static Analysis 
-- Unit Testing 
-- API Testing 
-- Integration Testing 
-- Frontend Component Testing 
-- BDD/Acceptance Testing 
-- E2E Testing 
-- Visual Regression 
-- Smoke Testing 
-- Sanity Testing 
-- Regression Testing 
-- Contract Testing 
-- Security Testing 
-- Performance Testing 
-- Resilience / Chaos Testing
-
-## Test Scenarios 
-
-Different pipeline triggers use different test scopes. 
-
-### PR Validation 
-- Main Purpose: Fast developer feedback 
-- Typical Tests: Static, Unit, API, Component, Integration 
-
-### Master Validation 
-- Main Purpose: Integration confidence 
-- Typical Tests: Unit, API, Integration, BDD, E2E
-
-### Nightly Regression 
-- Main Purpose: Continuous regression detection 
-- Typical Tests: Regression, BDD, E2E, Visual 
-
-### Release Validation 
-- Main Purpose: Release confidence 
-- Typical Tests: Full Regression, E2E, Visual, Security 
-
-### Performance 
-- Main Purpose: Capacity validation 
-- Typical Tests: Load, Stress, Spike, Soak 
-
-### Production Smoke 
-- Main Purpose: Deployment safety 
-- Typical Tests: Health, Critical API, Critial UI 
-
-
-> Here, nightly regression and release validaiton intentionally use different scopes. Nightly optimizes for continuous regression detection, while release validation maximizes production confidence. 
-
-
-## CI/CD Flow 
-### Pull Request 
-PR -> Static Analysis -> Unit Tests -> Component Tests -> API / Integration Tests -> Coverage -> Code Quality -> GitHub Status Check 
-
-### Master Merge 
-Merge -> Build -> Unit / Integration / API -> BDD / E2E -> Quality Gates -> Docker Build -> Image Security Scan -> Push Image 
-
-### Release 
-Release Candidate -> Full Regression -> E2E / BDD / Visual -> Deploy Test -> Smoke Test -> Deploy STAGING -> Validation -> Manual Approval -> Deploy PROD -> Production Smoke Test 
-
-### Nightly 
-Scheduled Trigger -> Extended Regression -> BDD -> E2E -> Visual Regression -> Report -> Notification 
-
-### Performance 
-Performance Pipeline -> Load Test -> Stress Test -> Spike Test -> Latency / Throughput Analysis 
-
-
-## Configurable Test Profiles 
-
-Test execution is controlled through reusable profiles rather than hard-coded Jenkins stages. 
+<img width="866" height="801" alt="CI/CD Architecture" src="https://github.com/user-attachments/assets/d3fccdba-dee1-4d55-b3a2-c9ddf9c7a6ae" />
 
 ```
-tests: 
-  unit: true 
-  api: true 
-  integration: true 
+Test Type → Test Strategy → Suite → Engineering Scenario → Lifecycle / Environment → Pipeline
+```
+
+A pipeline is not a test suite. Smoke is not a test type. BDD is a specification style, not a layer.
+
+## Documents
+
+| Doc | What it is |
+|---|---|
+| [docs/testing-architecture.md](docs/testing-architecture.md) | Lifecycle, types vs strategies, pipelines, canary instrumentation |
+| [docs/frontend-test-design.md](docs/frontend-test-design.md) | Frontend layers, journeys, profile flags |
+| [docs/test-implementation-gaps.md](docs/test-implementation-gaps.md) | Designed suites not yet wired, and how to land them |
+| [PLAN.md](PLAN.md) | Implementation blueprint and phases |
+
+## What we validate (test types)
+
+Types describe **what**. They live in this repo:
+
+| Type | Where |
+|---|---|
+| Static | `next lint`; backend lint to add |
+| Unit | `bugtracker-backend` `go test`; frontend Jest helpers / API client |
+| Component | `bugtracker-frontend` Testing Library |
+| API | `tests-api` |
+| Integration | `tests-integration` + `bugtracker-backend/internal/integration` (handler → bbolt) |
+| E2E | `tests-e2e` |
+| BDD | `tests-bdd` (Cucumber + API fixtures) |
+| Performance | `tests-perf` (k6) |
+| Security | `tests-security` (`npm audit`, govulncheck, Trivy, API abuse) |
+| Visual | Playwright `toHaveScreenshot` in `tests-visual/` |
+
+Integration is **API → handler → bbolt**, not a browser path. Suite: [tests-integration](../tests-integration). Contract and chaos stay later.
+
+**Not types:** smoke, sanity, regression, release validation, critical path. Those are **strategies** — they compose the types above.
+
+## Strategies and suites
+
+A suite has an objective. It is not named after a single tool.
+
+| Suite | Objective | Composition |
+|---|---|---|
+| PR Validation | Merge protection, fast | Static, unit, component, API, audit |
+| Master / Merge | Integrated tree still works | PR + BDD + E2E |
+| Nightly | Expensive regression detection | Full regression, visual, extended E2E |
+| Release | Artifact is promotable | Smoke after deploy + full regression + security |
+| Production / Canary | Small blast radius, real conditions | Smoke, critical path, **instrumentation** |
+
+Frontend assignment of these flags: [docs/frontend-test-design.md](docs/frontend-test-design.md).
+
+Profiles stay data, not hard-coded stages:
+
+```yaml
+# example: PR
+tests:
+  unit: true
   component: true
-  bdd: true 
-  e2e: false 
-  visual: false 
+  api: true
+  bdd: false
+  e2e: false
+  visual: false
   security: true
-  performance: false 
+  performance: false
 ```
 
-Here are the example profiles: 
-- PR
-- MASTER 
-- NIGHTLY
-- RELEASE 
-- PERFORMANCE
-- SMOKE 
+## Engineering scenarios (pipelines)
 
+Several pipelines, because the questions differ:
 
-Mandatory tests are enforced by pipeline policy, while optional suites can be added according to the scenario. 
+| Pipeline | Question |
+|---|---|
+| PR | Can this change enter the codebase? |
+| Merge | Does the integrated codebase still behave? |
+| Nightly | Did we miss slow or wide regressions? |
+| Release | Can this **same** image be promoted? |
+| Canary | Does the candidate hold under a small slice, by **tests and 埋点**? |
 
-## Jenkins Platform 
-Jenkins is deployed on Kubernetes with **dynamic ephemeral agents.**
+Build once, promote many. Staging and production do not rebuild.
 
-Jenkins Controller --> Pipeline Queue --> Kubernetes Agent Pool -> {Agent, Agent, Agent, ...}
+```
+PR → Merge → Artifact → TEST / Staging → Release → Canary → 100%
+```
 
-The platform is designed for: 
-- Multi-team / multi-tenant pipelines 
-- Isolated execution 
-- Dynamic agent provisioning 
-- RBAC and credential isolation 
-- Pipeline failure recovery 
-- Jenkins health monitoring 
-- Persistent configuration and backup 
+Upstream failure blocks downstream promotion. Canary failure stops the rollout and rolls back. Rollback is a pipeline **outcome**, not a side runbook.
 
-## Local Jenkins on kind
+## Canary and instrumentation (埋点)
 
-Introduction and design notes: [docs/jenkins-on-kind.md](docs/jenkins-on-kind.md).
+No Istio. Canary is a Jenkins gate against a **second Helm release** (`bugtracker-canary`) while stable keeps the previous image.
 
-The Compose + DinD stack under `jenkins/` stays the local fallback. The kind path deploys a production-shaped Jenkins with Helm: persistent controller, JCasC, and ephemeral Kubernetes agents.
+1. Deploy candidate to `CANARY_URL`
+2. Validation window (minutes): loop smoke + create/read + thin UI; record success ratio, latency; `kubectl logs` on canary pods
+3. PASS → promote the **same image** to stable, uninstall canary
+4. FAIL → uninstall canary, stable untouched, fail the pipeline
 
-Prerequisites: Docker, [kind](https://kind.sigs.k8s.io/), kubectl, and Helm 3.
+Details: [testing-architecture.md §9](docs/testing-architecture.md).
+
+## Environments
+
+```
+Dev → TEST / Integration → Staging → Canary / Gray → Production
+```
+
+The same E2E may run in staging as release validation and against canary as critical path. The file is the same; purpose and risk are not.
+
+## Quality gates
+
+```
+Suite result → Coverage → Lint / scan → Artifact → Deploy smoke → Canary instrumentation
+```
+
+Examples: coverage floor, no blocking vulns, mandatory regression green, canary error ratio and KPI within window.
+
+Failures must name pipeline, commit, stage, suite, environment, duration, and report link.
+
+## Production feedback
+
+```
+Incident → RCA → missing coverage → automated test → regression suite → gate
+```
+
+Production risk feeds the suite catalog. That is SDET work, not a new deploy tool.
+
+## Application and tools
+
+- App: Go, Next.js / React, bbolt (no extra Kafka/Postgres bolted on for the diagram)
+- Tests: Go test, Jest, Playwright (API / E2E / visual), Cucumber BDD, k6
+- Runner: Jenkins on Kubernetes (ephemeral agents). Local kind: [docs/jenkins-on-kind.md](docs/jenkins-on-kind.md)
+- Observability **as test input**: metrics, logs, traces used in canary / production gates. Jenkins JVM dashboards are operational, not the testing architecture.
+
+## Local Jenkins runner
+
+Kind + Helm install notes live in [docs/jenkins-on-kind.md](docs/jenkins-on-kind.md). Compose + DinD under `jenkins/` remains the course-track fallback.
+
+App chart: `helm/bugtracker` (backend + frontend). Images come from Master only (`kind-registry:5000/bugtracker-{backend,frontend}:<sha>`).
 
 ```bash
-# From the repository root
 cd jenkins-k8s-solution
-
 ./scripts/kind-up.sh
 ./scripts/deploy-jenkins.sh
+
+# After Master has pushed a tag:
+IMAGE_TAG=<sha> ./scripts/build-and-push.sh   # local equivalent of Master image stages
+IMAGE_TAG=<sha> ./scripts/deploy-bugtracker.sh
+IMAGE_TAG=<sha> ./scripts/deploy-bugtracker.sh --canary
 ```
 
-`deploy-jenkins.sh` builds `docker.io/jenkins-kind/controller:1.0.0` (plugins baked in), loads it into kind, then runs `helm upgrade --install`.
+Jenkins jobs (Pipeline from SCM, **Script Path**):
 
-- UI: [http://localhost:9000](http://localhost:9000)
-- User: `admin`
-- Password: printed by the deploy script, or:
+| Job | Script Path | Builds images? |
+|---|---|---|
+| PR | `jenkins-k8s-solution/jenkins/pipelines/pr.Jenkinsfile` | No |
+| Master | `.../master.Jenkinsfile` | Yes — compile, then Kaniko push |
+| Nightly | `.../nightly.Jenkinsfile` | No |
+| Release | `.../release.Jenkinsfile` | No — canary then promote the Master tag |
 
-```bash
-kubectl --context kind-jenkins -n jenkins get secret jenkins \
-  -o jsonpath='{.data.jenkins-admin-password}' | base64 --decode
+UI: <http://localhost:9000> (Jenkins). App stable: API `http://127.0.0.1:18080`, UI `http://127.0.0.1:13000`.
+
+Existing kind cluster `jenkins` must be recreated once so NodePorts and the local registry patches apply (`./scripts/teardown.sh --cluster` then `kind-up.sh`).
+
+## Project goal
+
+Turn business and production risk into automated, observable, enforceable quality gates across the lifecycle.
+
 ```
-
-Create a Pipeline job from `jenkins/pipelines/agent-smoke.Jenkinsfile` (`agent { label 'jenkins-agent' }`). A pod should appear in the `jenkins` namespace and be deleted when the build finishes.
-
-```bash
-# Remove the Helm release; keep the cluster
-./scripts/teardown.sh
-
-# Remove the Helm release and the kind cluster
-./scripts/teardown.sh --cluster
+Business risk → Test type / strategy → Suite → Pipeline scenario
+    → Artifact promotion → Canary instrumentation → Rollback or 100%
 ```
-
-If port 9000 is already used by the Compose Jenkins, stop that stack first, or create the cluster on another host port:
-
-```bash
-KIND_HOST_PORT=9001 ./scripts/kind-up.sh
-KIND_HOST_PORT=9001 ./scripts/deploy-jenkins.sh
-```
-
-Troubleshooting:
-
-- kind shares the Docker Desktop disk. If the controller init container dies with `echo: I/O error`, free space (`docker builder prune` is usually enough) and delete `jenkins-0` so it retries.
-- `deploy-jenkins.sh` flattens images to the kind node platform (linux/arm64 or linux/amd64) before `kind load`, so Docker Desktop multi-arch manifests do not break the import.
-
-## Observability 
-**The platform monitors both CI infrastructure and application runtime.**
-
-### Jenkins 
-- Queue length 
-- Executor utilization 
-- Build duration 
-- Build success / failure rate 
-- Agent provisioning time 
-- Agent availability 
-- Controller CPU / memory / JVM 
-- Disk usage 
-
-### Kubernetes
-- Pod CPU / memory 
-- Pod restarts 
-- Pending pods 
-- Node utilization 
-- Agent failures 
-
-### Application 
-- Request rate 
-- Latency 
-- Error rate 
-- Resource utilization 
-- Logs 
-- Distributed traces 
-
-## Quality Gate 
-
-The pipeline can enforce quality thresholds such as: 
-Test Result -> Coverage -> Code Quality -> Security Scan -> Artifact Validation -> Deploy Validation.
-
-Examples: 
-- Minimum test coverage 
-- No critcal quality violations 
-- No blocking security vulnerabilities 
-- Mandatory regression suites passed 
-- Deployment health checks passed 
-
-
-## Test Reporting & Notifications 
-Each pipeline generates consolidated reports for: 
-- Test results 
-- Code coverage 
-- Code quality 
-- BDD / Serenity 
-- Playwright 
-- Visual regression 
-- Security scanning 
-- Performance metrics 
-
-Failures provide actionable information including: 
-- Pipeline 
-- PR / Commit 
-- Failed Stage 
-- Failed Test Suite 
-- Environment 
-- Execution Duration 
-- Report Link 
-
-Notifications can be integrated with: 
-- Discord 
-- GitHub 
-- Microsoft Teams 
-- Slack 
-- Email 
-
-## Production Feedback Loop 
-
-Production incidents are treated as inputs to the automated testing strategy. 
-
-Production Incident -> Root Cause Analysis -> Missing Test Coverage -> Automated Test -> Regression Suite -> Pipeline Quality Gate -> Future Regression Prevention 
-
-This creates a continuous feedback loop between **production risk and automated quality engineering**. 
-
-## Engineering Principles 
-### Build Once, Promote Many 
-Build -> Test -> Docker Image -> Registry -> TEST -> STAGING -> PROD 
-
-The same immutable image is promoted across environments. 
-
-### Test According to Risk 
-Not every pipeline executes every test. 
-
-- PR        -> Fast Feedback 
-- Master    -> Integration Confidence 
-- Nightly   -> Regression Detection 
-- Release   -> Production Confidence 
-- Perf      -> Capacity Validation 
-
-### Separate Test Types from Test Scenarios 
-
-A **test type** describes how the system is tested. A **test scenario** describes why and when the validation is executed. 
-
-
-### Treat CI as a Platform 
-
-Jenkins is treated as a production engineering platform requiring: 
-- Scalability 
-- Reliability 
-- Security 
-- Observability 
-- Fault tolerance 
-- Backup / recovery 
-- SLA monotiring 
-
----
-
-## Project Goal 
-
-The project aims to demonstrate an end-to-end capability to transform **business requirements and production risks into scalable, automated, observable, and enforceable quality gates** acorss the software delivery lifecycle. 
-
-Business Risk -> Test Strategy -> Automated Tests -> Jenkins Pipeline -> Quality Gate -> Kubernetes Deployment -> Observability -> Production Safety. 

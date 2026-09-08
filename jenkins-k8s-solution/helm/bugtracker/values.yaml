@@ -1,0 +1,49 @@
+# Shared defaults. Overlay values-kind.yaml or values-canary.yaml.
+
+fullnameOverride: bugtracker
+
+imagePullPolicy: IfNotPresent
+
+backend:
+  replicaCount: 1
+  image:
+    registry: kind-registry:5000
+    repository: bugtracker-backend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8080
+    nodePort:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  env:
+    dbPath: /app/data/bugs.db
+    seedData: "true"
+  persistence:
+    enabled: true
+    size: 1Gi
+
+frontend:
+  replicaCount: 1
+  image:
+    registry: kind-registry:5000
+    repository: bugtracker-frontend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 3000
+    nodePort:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # Browser-facing API URL (ConfigMap → /runtime-config.js). Not baked into the image.
+  publicApiUrl: http://localhost:8080

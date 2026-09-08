@@ -1,0 +1,15 @@
+{
+  "default": {
+    "paths": ["features/**/*.feature"],
+    "import": ["./tsx-register.js", "steps/**/*.ts"],
+    "parallel": 1,
+    "format": [
+      "progress",
+      "junit:test-results/results.xml",
+      "html:test-results/cucumber.html"
+    ],
+    "formatOptions": {
+      "snippetInterface": "async-await"
+    }
+  }
+}

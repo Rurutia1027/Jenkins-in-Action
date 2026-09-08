@@ -1,16 +1,16 @@
 import { Bug } from "../types/bug";
+import { getApiBaseUrl } from "@/config";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 const API_PATH = "/api";
 
 // crud operations surround the bugs 
 // interact with the backend endpoints
 export const getBugs = async (): Promise<Bug[]> => {
   try {
-    const url = `${API_BASE_URL}${API_PATH}/bugs`;
+    const url = `${getApiBaseUrl()}${API_PATH}/bugs`;
     console.log("API call details:", {
       url,
-      API_BASE_URL,
+      API_BASE_URL: getApiBaseUrl(),
       API_PATH,
       fullUrl: url,
     });
@@ -41,7 +41,7 @@ export const getBugs = async (): Promise<Bug[]> => {
 export const createBug = async (bugData: Omit<Bug, "id">) => {
   try {
     // http://localhost:8080/api/bugs
-    const response = await fetch(`${API_BASE_URL}${API_PATH}/bugs`, {
+    const response = await fetch(`${getApiBaseUrl()}${API_PATH}/bugs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export const createBug = async (bugData: Omit<Bug, "id">) => {
 export const updateBug = async (id: string, bugData: Partial<Bug>) => {
   try {
     // http://localhost:8080/api/bugs/{id}
-    const response = await fetch(`${API_BASE_URL}${API_PATH}/bugs/${id}`, {
+    const response = await fetch(`${getApiBaseUrl()}${API_PATH}/bugs/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -81,7 +81,7 @@ export const updateBug = async (id: string, bugData: Partial<Bug>) => {
 export const deleteBug = async (id: string) => {
   try {
     // http://localhost:8080/api/bugs/{id}
-    const response = await fetch(`${API_BASE_URL}${API_PATH}/bugs/${id}`, {
+    const response = await fetch(`${getApiBaseUrl()}${API_PATH}/bugs/${id}`, {
       method: "DELETE",
     });
     if (!response.ok) {

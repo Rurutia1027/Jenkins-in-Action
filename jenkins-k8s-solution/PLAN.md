@@ -2,56 +2,47 @@
 
 A production-oriented CI/CD and automated testing platform built with Jenkins, GitHub, Kubernetes, and the Bug Tracker fullstack application in this repository.
 
-This document is the solution blueprint. Implementation follows the phases at the end. A public README can be derived from this plan later.
+This document is the solution blueprint. The SDET contract is [docs/testing-architecture.md](docs/testing-architecture.md). Implementation follows the phases at the end.
 
 ---
 
 ## 1. Project Overview
 
-This project demonstrates how to design and implement a production-oriented automated testing and CI/CD platform for a modern fullstack application.
+This project is an SDET platform for Bug Tracker. Jenkins and Kubernetes execute the strategy. They do not define it.
 
-The goal is not simply to run tests in Jenkins.
+The goal is not to start from a Jenkinsfile.
 
-The project establishes a complete engineering workflow:
+The architecture maps test types, strategies, engineering scenarios, lifecycle stages, and environments onto pipelines. Delivery appears as **promotion and canary validation**, not as a catalogue of Helm flags.
 
 ```
-Business Scenarios
+Business risk
         ↓
-Test Strategy
+Test type / test strategy
         ↓
-Automated Test Suites
+Composed suites
         ↓
-Jenkins Pipeline
+Engineering scenario (PR / merge / nightly / release / canary)
         ↓
-Docker Image
+Immutable artifact
         ↓
-Kubernetes Deployment
+Environment (TEST / staging / canary)
         ↓
-Quality Gates
+Quality gates + instrumentation (埋点)
         ↓
-Observability
-        ↓
-Release / Rollback
+Promote or rollback
 ```
 
 The same Bug Tracker application is used throughout to validate:
 
-- Automated testing architecture
-- CI pipeline design
-- CD pipeline design
-- Jenkins scalability and reliability
-- Kubernetes deployment
-- Test result reporting
-- Code quality and coverage analysis
-- Frontend and backend automation
-- API, integration, E2E, BDD, and visual regression testing
-- Performance and security testing
-- Production smoke testing
-- Failure notification
-- Observability
-- Release governance and rollback
+- Test type vs strategy vs lifecycle vs environment
+- Scenario-driven suites (PR, merge, nightly, release, canary)
+- Frontend and backend automation (unit, component, API, E2E, BDD, visual)
+- Performance and security as types placed by cost
+- Production / canary **instrumentation tests** (metrics, logs, traces, business KPIs)
+- Incident → missing coverage → regression gate
+- Jenkins only as the runner (ephemeral agents on kind)
 
-The platform shows how different testing strategies can be dynamically combined and executed according to development and release scenarios.
+Do not add Kafka, PostgreSQL, or Redis to Bug Tracker to match a payments diagram. The model transfers; the product stays this app.
 
 ---
 
@@ -211,23 +202,21 @@ Do not add Kafka, RabbitMQ, PostgreSQL, or Redis to Bug Tracker just to match a 
 | E2E | Playwright (`tests-e2e`) | Exists |
 | Performance | k6 (`tests-perf`) | Exists, light script |
 | Frontend lint | ESLint / `next lint` | Exists |
-| BDD | Cucumber + Gherkin on bug lifecycle | To add |
-| Visual regression | Playwright screenshots | To add |
+| BDD | Cucumber + Gherkin on bug lifecycle | Exists in `tests-bdd/` |
+| Visual regression | Playwright screenshots | To add → `tests-visual/` |
 | Smoke / sanity | Thin API + E2E slices | To add |
 | Backend lint | golangci-lint | To add |
-| Dependency / image security | govulncheck, Trivy | To add |
+| Dependency / image security | govulncheck, Trivy, npm audit | Exists in `tests-security/` |
 | Quality gate | Coverage + lint + scan thresholds | To add |
 | Optional quality server | SonarQube | Optional if local cost is acceptable |
 
-### Observability (to add)
+### Observability (as test input)
 
-- Prometheus
-- Grafana
-- Loki
-- OpenTelemetry (later)
-- Jaeger / Tempo (later)
+Prometheus, Grafana, Loki, later OpenTelemetry / Tempo.
 
-Observability covers both the Jenkins platform and the deployed Bug Tracker application.
+Primary use: **canary and production instrumentation tests** — rate, errors, latency, logs, traces, Bug Tracker KPIs (create / read / comment success). Jenkins controller metrics are operational support, not the SDET architecture.
+
+See [docs/testing-architecture.md](docs/testing-architecture.md) §9.
 
 ---
 
@@ -257,10 +246,12 @@ The same suite can be reused by different pipelines.
 
 This distinction is critical:
 
-- **Test type** describes *how* the system is tested (unit, API, E2E, visual, performance).
-- **Test scenario** describes *why* the tests run (PR validation, nightly regression, release validation, production smoke).
+- **Test type** describes *what* is validated (unit, API, E2E, visual, performance).
+- **Test strategy** describes *why* a set is selected (smoke, regression, release validation, critical path).
+- **Engineering scenario** describes *what triggered* the run (PR, merge, nightly, release, canary).
+- **Lifecycle / environment** describe *when* and *where*.
 
-A regression scenario is a business validation objective composed of multiple suites. It is not a single test type.
+Smoke and regression are strategies, not types. Full model: [docs/testing-architecture.md](docs/testing-architecture.md).
 
 ---
 
@@ -328,6 +319,13 @@ bbolt
 ```
 
 Purpose: validate real storage and service integration. Do not introduce Kafka or Redis unless the application actually uses them.
+
+Suite:
+
+- In-process: `go test -tags=integration ./internal/integration/` (httptest + real bbolt file, including reopen)
+- Over the wire: `tests-integration/lifecycle.spec.ts` against a running API
+
+Jenkins: PR runs the Go suite. Master / Nightly / Release also run the HTTP chain.
 
 ### 6.5 Component testing
 
@@ -413,7 +411,7 @@ Visual difference
 
 Useful for the dashboard list, detail page, modals, and responsive layout.
 
-Technology: Playwright screenshots.
+Technology: Playwright `toHaveScreenshot()` in `tests-visual/`. See [docs/test-implementation-gaps.md](docs/test-implementation-gaps.md).
 
 ### 6.9 Regression testing
 
@@ -475,9 +473,9 @@ If a second consumer appears, contract tests can verify that the frontend and ba
 
 Integrated into CI where cost is acceptable.
 
-- Dependency / CVE scan: govulncheck, npm audit
+- Dependency / CVE scan: govulncheck, npm audit (`tests-security/`)
 - Container scan: Trivy on backend and frontend images
-- API security: invalid input, missing fields, basic access assumptions
+- API security: invalid input, missing fields (`tests-security/api-abuse.spec.ts`)
 
 Optional later: OWASP ZAP against TEST.
 
@@ -1198,8 +1196,8 @@ Write this PLAN.md. No application code changes.
 
 - Define profiles: `pr`, `master`, `nightly`, `release`, `performance`, `prod-smoke`
 - Split smoke and sanity from the existing API / E2E suites
-- Add BDD on bug create / update / comment
-- Add Playwright visual snapshots for list and detail pages
+- BDD on bug create / update / comment / delete (`tests-bdd`)
+- Playwright visual snapshots (`tests-visual`)
 - Aggregate reports
 - Bind suites to PR vs master vs nightly
 
@@ -1210,19 +1208,18 @@ Write this PLAN.md. No application code changes.
 - Ephemeral agents / pod templates
 - Keep `jenkins/` Compose + DinD as a local fallback only
 
-### P3 — CD
+### P3 — Promotion and canary validation
 
-- Helm chart and env values
-- Registry
-- Promote immutable images TEST → STAGING → PROD
-- Post-deploy smoke
-- Helm rollback
+- Same immutable image for canary and stable
+- Pipeline canary: second Helm release (or namespace), **no Istio**
+- Window: synthetic smoke / critical path loop + log/KPI gates
+- FAIL → uninstall canary (stable untouched); PASS → promote then drop canary
+- Mesh / weighted Ingress out of scope
 
 ### P4 — Quality and security
 
 - Coverage and lint gates
-- Trivy image scan
-- govulncheck / npm audit
+- Security suite in `tests-security/` (Trivy, govulncheck, npm audit, API abuse)
 - Failure notifications and GitHub checks
 
 ### P5 — Observability
@@ -1243,29 +1240,21 @@ Write this PLAN.md. No application code changes.
 
 ## 21. Resume-Oriented Summary
 
-This project demonstrates the ability to design and implement a production-oriented automated testing and CI/CD platform, rather than only configuring Jenkins jobs.
+This project demonstrates SDET architecture: mapping test types, strategies, and lifecycle stages onto pipelines, rather than only configuring Jenkins jobs.
 
 Capabilities to demonstrate:
 
-- Enterprise-style Jenkins architecture
-- GitHub integration
-- Kubernetes-based Jenkins agents
-- CI/CD orchestration
-- Scenario-driven test strategy
+- Test type vs strategy vs engineering scenario vs environment
+- Scenario-driven suites (PR, merge, nightly, release, canary)
 - Playwright API / E2E / visual automation
 - Jest component testing
 - Go unit / integration testing
-- BDD
-- k6 performance testing
-- Security scanning
-- Test reporting
-- Coverage and quality gates
-- Docker image lifecycle
-- Helm-based Kubernetes deployment
-- Release governance
-- Production smoke testing
-- Jenkins observability
-- Fault tolerance and scalability
-- Incident-driven test improvement
+- BDD as specification, not a layer
+- k6 performance placed by cost (not on every PR)
+- Quality gates and actionable reports
+- Immutable artifact promotion
+- Canary **instrumentation tests** (埋点): synthetic + metrics/logs/KPIs, fail-closed rollback
+- Incident-driven regression improvement
+- Jenkins on Kubernetes only as the execution runner
 
-The objective is to transform business and production risks into automated, observable, scalable, and enforceable quality gates throughout the software delivery lifecycle.
+The objective is to place the right validation in the right environment at the right point in the lifecycle, keeping feedback fast and production risk small.

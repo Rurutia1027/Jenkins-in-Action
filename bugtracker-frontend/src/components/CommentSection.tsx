@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Comment } from "@/types/comment";
-import { API_BASE_URL } from "@/config";
+import { getApiBaseUrl } from "@/config";
 
 interface CommentSectionProps {
   bugId: number;
@@ -23,7 +23,7 @@ export default function CommentSection({
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/bugs/${bugId}/comments`,
+        `${getApiBaseUrl()}/api/bugs/${bugId}/comments`,
         {
           method: "POST",
           headers: {
@@ -48,7 +48,7 @@ export default function CommentSection({
   };
 
   return (
-    <div className="mt-8">
+    <div className="mt-8" data-testid="comment-section">
       <h2 className="text-xl font-semibold mb-4">Comments</h2>
 
       <div className="mb-6">
@@ -109,7 +109,10 @@ export default function CommentSection({
             <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-start">
                 <span className="font-medium">{comment.author}</span>
-                <span className="text-sm text-gray-500">
+                <span
+                  className="text-sm text-gray-500"
+                  data-testid="comment-timestamp"
+                >
                   {new Date(comment.createdAt).toLocaleString("en-US", {
                     dateStyle: "short",
                     timeStyle: "medium",
