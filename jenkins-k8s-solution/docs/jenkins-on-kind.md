@@ -1,8 +1,8 @@
 # Jenkins on kind 
 
-This is the first platform slice of the final project: a production-shaped Jenkins controller on a local Kubernetes cluster. 
+This is the **execution runner** for the SDET platform: a production-shaped Jenkins controller on a local Kubernetes cluster.
 
-The Bug Tracker fullstack app stays the system under test. This document only covers how Jenkins itself is deployed. The Compose + DinD stack under `jenkins` remains the fallback for the course track. 
+The testing architecture (types, strategies, canary instrumentation) lives in [testing-architecture.md](./testing-architecture.md). This file only covers how Jenkins itself is installed so those suites can run. The Compose + DinD stack under `jenkins/` remains the course-track fallback. 
 
 ## Why this exists 
 
@@ -120,7 +120,7 @@ Then after the above commands, a pod should appear in namespace `jenkins` and di
 If Compose Jenkins already holds port 9000: 
 
 ```bash 
-KIND_HOST_PORT=9001 ./scripts/kind-up.sj 
+KIND_HOST_PORT=9001 ./scripts/kind-up.sh 
 KIND_HOST_PORT=9001 ./scripts/deploy-jenkins.sh 
 ```
 
